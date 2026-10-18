@@ -68,12 +68,10 @@ If a banner changes its structure, the result may degrade to the generic summary
 ## Contributing
 Adding a new manager usually takes one line in src/detect.js and, if the manager has an API, a function in src/page-bridge.js. Improving or translating the texts in src/i18n.js is the most useful contribution.
 
-## License
 
 
 
-
-#SPANISH
+# SPANISH
 # Cookie Translator
 Entiende qué te piden los banners de cookies antes de aceptar o rechazar.
 
