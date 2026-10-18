@@ -1,0 +1,7 @@
+{
+  "name": "cookie-translator",
+  "version": "0.1.0",
+  "description": "Browser extension that explains cookie banners in plain language.",
+  "license": "MIT",
+  "scripts": { "update-gvl": "node scripts/update-gvl.mjs" }
+}

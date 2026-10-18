@@ -1,0 +1,35 @@
+<!doctype html>
+<meta charset="utf-8"><title>Demo Cookie Translator</title>
+<body style="font-family:system-ui;max-width:600px;margin:40px auto">
+<h1>Página de prueba</h1>
+<p>Simula un CMP con API TCF y un banner estilo OneTrust.</p>
+
+<div id="onetrust-banner-sdk" style="position:fixed;left:0;right:0;bottom:0;background:#222;color:#fff;padding:20px">
+  <p>Nosotros y nuestros 143 socios usamos cookies para personalizar anuncios y contenido.</p>
+  <button id="all">Aceptar todo</button> <button id="nec">Solo necesarias</button>
+</div>
+
+<script>
+  // Simula OneTrust declarando solo 3 finalidades + GPS
+  window.OneTrust = { GetDomainData: () => ({ Groups: [
+    { Type: 'IAB2V2_PURPOSE', GroupName: 'Store and/or access information on a device', GroupDescription: 'Cookies o identificadores en tu dispositivo.' },
+    { Type: 'IAB2V2_PURPOSE', GroupName: 'Use profiles to select personalised advertising', GroupDescription: 'Anuncios según tu perfil.' },
+    { Type: 'IAB2V2_SPL_FEATURE', GroupName: 'Use precise geolocation data', GroupDescription: 'Tu ubicación exacta.' } ] }) };
+  // Mini-CMP falso (solo para pruebas)
+  const listeners = [];
+  const state = (status, all) => ({
+    cmpId: 999, gdprApplies: true, eventStatus: status,
+    purpose: { consents: all ? {1:true,2:true,3:true,4:true,7:true,9:true,10:true} : {} },
+    vendor: { consents: all ? {1:true,2:true,8:true,25:true,755:true} : {} },
+    specialFeatureOptins: {},
+  });
+  window.__tcfapi = (cmd, v, cb) => {
+    if (cmd === "addEventListener") { listeners.push(cb); cb(state("cmpuishown", false), true); }
+  };
+  const finish = (all) => {
+    document.getElementById("onetrust-banner-sdk").remove();
+    listeners.forEach((cb) => cb(state("useractioncomplete", all), true));
+  };
+  document.getElementById("all").onclick = () => finish(true);
+  document.getElementById("nec").onclick = () => finish(false);
+</script>

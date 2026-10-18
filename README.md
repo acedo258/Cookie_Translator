@@ -1,143 +1,39 @@
-# ENGLISH
 # Cookie Translator
-Understand what cookie banners are really asking before you accept or reject.
 
-## What it is
-Cookie Translator is an open-source browser extension that reads the list of uses declared by a website's cookie banner and translates it into plain language: what data is collected, what for, and what it means for your privacy. It works 100% locally: it doesn't send anything to any server.
+Extensión de navegador (open source) que **traduce el banner de cookies a lenguaje humano** antes de que aceptes.
+Browser extension that explains cookie banners in plain language *before* you click.
 
-## Why it exists
-European law requires your consent to be informed, but every website describes the same things differently. Lidl lists 16 uses in industry jargon, Siemens Energy a list of tools named after companies, and Garmin says almost nothing. This extension puts all of that into a comparable, easy-to-understand format.
+- Si aceptas todo → qué estás permitiendo (perfiles, anuncios a medida, medición…).
+- Si aceptas solo lo necesario → qué cambia.
+- Después de elegir (CMPs con IAB TCF) → un "recibo" con las empresas y finalidades que has autorizado.
 
-## What it does
-The extension detects the cookie banner on the page and asks the banner's manager (the CMP) directly what the website declares, instead of guessing by reading the text. That way it works even if the banner is in another language. It then shows a panel with the uses explained in plain language, ordered from most to least serious: GPS, device fingerprinting, ad profiles, linking devices, and so on. If the banner doesn't provide that information, the extension says so and shows a generic summary, without making anything up.
+100 % local: no envía nada a ningún servidor.
 
-## How it detects each manager
-OneTrust: reads the OptanonGroupId field of each group, which carries the official number from the IAB TCF standard. For example, IAB2V2_3 is purpose 3 and ISF2V2_1 is special feature 1. Because it's a code and not text, it works in any language. The visible names are used only as a fallback and as a subtitle. Technical and test groups are filtered out.
+## Probar en local
 
-Usercentrics: calls UC_UI.getServicesBaseInfo(), which returns a promise and therefore has to be awaited. Each service comes with its name and its category. The categories essential, functional and marketing are translated directly. Custom categories (customcategory-<id>) are inferred from the service name using a heuristic: "Adobe Analytics" is classified as statistics and "Brightcove" as third-party content.
+1. (Opcional) `npm run update-gvl` para descargar la lista de proveedores del IAB (nombres en el "recibo").
+2. **Chrome:** `chrome://extensions` → Modo desarrollador → *Cargar descomprimida* → esta carpeta.
+   **Firefox (128+):** `about:debugging` → *Este Firefox* → *Cargar complemento temporal* → `manifest.json`.
+3. Sirve la página de prueba: `python3 -m http.server 8000` y abre `http://localhost:8000/test/demo.html`.
 
-Didomi: reads the page's Didomi API and shows the uses the website declares.
+## Estructura
 
-TrustArc: only exposes consentDecision, a list of indexes of accepted categories. The value [0] means only the necessary category, so no warning is raised and the generic summary is shown.
+| Archivo | Qué hace |
+|---|---|
+| `src/page-bridge.js` | Corre en la página, escucha `window.__tcfapi` y reenvía datos |
+| `src/detect.js` | Detecta banners por CMP (añadir uno = una línea) y cuenta "partners" |
+| `src/i18n.js` | Textos en lenguaje llano (ES/EN) — **la parte más valiosa, ¡contribuye!** |
+| `src/panel.js` | Panel con Shadow DOM, accesible y con modo oscuro |
+| `src/content.js` | Orquesta todo |
 
-Other managers (Cookiebot, Quantcast, PRISA): the banner is detected by its selector and the generic summary is shown (for now).
+## Limitaciones conocidas (v0.1)
 
-Unknown banners: a fallback that looks for floating elements that mention cookies and accepting or rejecting, also with a generic summary (for now).
+- El estándar TCF **no expone** la lista de proveedores antes de que el usuario elija, así que el resumen previo es genérico por finalidades (+ el nº de socios si el banner lo menciona). El detalle exacto solo se conoce tras la elección.
+- Banners sin TCF: solo se detectan por selector; no se lee su contenido a fondo.
 
-## Types of cookies it explains
-- Necessary: make the website work (session, shopping cart, bot protection). They don't require permission.
-- Functional: remember language, country or embedded content.
-- Statistics: measure visits and how the site is used.
-- Marketing: follow you across websites to build profiles and show you tailored ads.
+## Roadmap
 
-## Installation (development)
+Adaptadores por CMP (OneTrust, Cookiebot, Didomi…) que lean los proveedores reales · popup con historial · tests con fixtures · más idiomas.
 
-1. Optional: run "npm run update-gvl" to download the IAB Global Vendor List (requires Node 18 or higher). It's used for company names.
-2.1. In Chrome: open chrome://extensions, turn on developer mode, click "Load unpacked" and choose this folder.
-2.2. In Firefox (128 or higher): open about:debugging, go to "This Firefox", click "Load Temporary Add-on" and choose manifest.json.
-
-
-## Project structure
-
-src/page-bridge.js runs in the page's context and reads the managers' APIs (OneTrust, Didomi, UC_UI, __tcfapi).
-
-src/detect.js detects banners by manager (adding one takes a single line) and counts the "partners".
-
-src/i18n.js contains the plain-language texts (ES/EN). It's the most valuable part of the project: contribute!
-
-src/panel.js draws the panel, with Shadow DOM, accessible and with dark mode.
-
-src/content.js orchestrates everything.
-
-data/gvl.json is the IAB vendor list, generated by scripts/update-gvl.mjs.
-
-## Known limitations
-
-It shows what the website declares, not an audit. The extension doesn't inspect real traffic or verify what each website actually does.
-
-The value source: "implied" in the consent object indicates the default state, not a choice you made.
-
-In OneTrust, Utiq (an identifier created from your IP and your mobile carrier) and EUID (your email turned into a code) appear as loose groups mixed in with test groups, and for now they are not shown, even though they are among the most serious items in the banner.
-
-In Usercentrics, the classification of custom categories is a heuristic and may fail with little-known services.
-
-In TrustArc, the API doesn't expose the category catalog.
-
-If a banner changes its structure, the result may degrade to the generic summary.
-
-## Contributing
-Adding a new manager usually takes one line in src/detect.js and, if the manager has an API, a function in src/page-bridge.js. Improving or translating the texts in src/i18n.js is the most useful contribution.
-
-
-
-
-# SPANISH
-# Cookie Translator
-Entiende qué te piden los banners de cookies antes de aceptar o rechazar.
-
-## Qué es
-Cookie Translator es una extensión de navegador de código abierto que lee la lista de usos que declara el banner de cookies de una web y la traduce a lenguaje claro: qué datos se recogen, para qué y qué implica para tu privacidad. Funciona 100 % en local: no envía nada a ningún servidor.
-
-## Por qué existe
-La ley europea exige que tu consentimiento sea informado, pero cada web cuenta lo mismo de forma distinta. Lidl enumera 16 usos con terminología de la industria, Siemens Energy una lista de herramientas con nombre de empresa y Garmin casi no dice nada. Esta extensión pone todo eso en un formato comparable y comprensible.
-
-## Qué hace
-La extensión detecta el banner de cookies de la página y le pregunta directamente al gestor del banner (CMP) qué declara la web, en lugar de adivinar leyendo el texto. Así funciona aunque el banner esté en otro idioma. Después muestra un panel con los usos explicados en lenguaje llano, ordenados de más a menos graves: GPS, huella digital, perfiles para anuncios, vincular dispositivos, etc. Si el banner no ofrece esa información, lo dice y muestra un resumen genérico, sin inventar nada.
-
-## Cómo detecta cada gestor
-OneTrust: lee el campo OptanonGroupId de cada grupo, que lleva el número oficial del estándar IAB TCF. Por ejemplo, IAB2V2_3 es el propósito 3 e ISF2V2_1 es la función especial 1. Como es un código y no un texto, funciona en cualquier idioma. Los nombres visibles se usan solo como respaldo y como subtítulo. Se filtran los grupos técnicos y de prueba.
-
-Usercentrics: llama a UC_UI.getServicesBaseInfo(), que devuelve una promesa y por eso se espera con await. Cada servicio trae su nombre y su categoría. Las categorías essential, functional y marketing se traducen directamente. Las categorías propias (customcategory-<id>) se deducen por el nombre del servicio, con una heurística: "Adobe Analytics" se clasifica como estadística y "Brightcove" como contenido de terceros.
-
-Didomi: lee la API Didomi de la página y muestra los usos que declara la web.
-
-TrustArc: solo expone consentDecision, una lista de índices de categorías aceptadas. El valor [0] significa solo la categoría necesaria, así que no se genera ningún aviso y se muestra el resumen genérico.
-
-Otros gestores (Cookiebot, Quantcast, PRISA): se detecta el banner por su selector y se muestra el resumen genérico (por ahora).
-
-Banners desconocidos: plan B que busca elementos flotantes que hablen de cookies y de aceptar o rechazar, también con resumen genérico (por ahora).
-
-## Tipos de cookies que explica
-- Necesarias: hacen que la web funcione (sesión, carrito, protección contra bots). No requieren permiso.
-- Funcionales: recuerdan idioma, país o contenido incrustado.
-- Estadística: miden visitas y uso del sitio.
-- Marketing: te siguen entre webs para crear perfiles y mostrar anuncios a medida.
-
-## Instalación (desarrollo)
-
-1. Opcional: ejecuta "npm run update-gvl" para descargar la Global Vendor List del IAB (necesita Node 18 o superior). Se usa para los nombres de empresas.
-2.1. En Chrome: abre chrome://extensions, activa el modo desarrollador, pulsa "Cargar descomprimida" y elige esta carpeta.
-2.2 En Firefox (128 o superior): abre about:debugging, entra en "Este Firefox", pulsa "Cargar complemento temporal" y elige manifest.json.
-
-
-## Estructura del proyecto
-
-src/page-bridge.js corre en el contexto de la página y lee las APIs de los gestores (OneTrust, Didomi, UC_UI, __tcfapi).
-
-src/detect.js detecta banners por gestor (añadir uno es una línea) y cuenta los "partners".
-
-src/i18n.js contiene los textos en lenguaje llano (ES/EN). Es la parte más valiosa del proyecto: ¡contribuye!
-
-src/panel.js dibuja el panel, con Shadow DOM, accesible y con modo oscuro.
-
-src/content.js orquesta todo.
-
-data/gvl.json es la lista de proveedores del IAB, generada por scripts/update-gvl.mjs.
-
-## Limitaciones conocidas
-
-Es lo que la web declara, no una auditoría. La extensión no inspecciona el tráfico real ni verifica lo que cada web hace de verdad.
-
-El valor source: "implied" en el objeto de consentimiento indica el estado predeterminado, no una elección tuya.
-
-En OneTrust, Utiq (identificador creado con tu IP y tu operador móvil) y EUID (tu email convertido en código) aparecen como grupos sueltos mezclados con grupos de prueba, y por ahora no se muestran, aunque son de lo más serio del banner.
-
-En Usercentrics, la clasificación de categorías propias es una heurística y puede fallar con servicios poco conocidos.
-
-En TrustArc, la API no expone el catálogo de categorías.
-
-Si un banner cambia su estructura, el resultado puede degradarse al resumen genérico.
-
-## Contribuir
-Añadir un gestor nuevo suele requerir una línea en src/detect.js y, si el gestor tiene API, una función en src/page-bridge.js. Mejorar o traducir los textos de src/i18n.js es la contribución más útil.
-
+## Licencia
+MIT
