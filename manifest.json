@@ -3,6 +3,10 @@
   "name": "Cookie Translator",
   "version": "1.0.0",
   "description": "Traduce el banner de cookies a lenguaje humano antes de que aceptes. / Translates cookie banners into plain language.",
+  "icons": {
+    "48": "icons/cookie_dat0s_48x48.png",
+    "96": "icons/cookie_dat0s_96x96.png"
+  },
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
