@@ -1,17 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Cookie Translator",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Traduce el banner de cookies a lenguaje humano antes de que aceptes. / Translates cookie banners into plain language.",
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*", "file:///*"],
+      "matches": ["http://*/*", "https://*/*"],
       "js": ["src/page-bridge.js"],
       "world": "MAIN",
       "run_at": "document_start"
     },
     {
-      "matches": ["http://*/*", "https://*/*", "file:///*"],
+      "matches": ["http://*/*", "https://*/*"],
       "js": ["src/i18n.js", "src/detect.js", "src/panel.js", "src/content.js"],
       "run_at": "document_idle"
     }
@@ -20,6 +20,12 @@
     { "resources": ["data/gvl.json"], "matches": ["http://*/*", "https://*/*"] }
   ],
   "browser_specific_settings": {
-    "gecko": { "id": "cookie-translator@example.org", "strict_min_version": "128.0" }
+    "gecko": {
+      "id": "cookie-translator@acedo258.github.io",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
   }
 }
